@@ -43,15 +43,3 @@ def country(country):
     except Exception:
         pass
     return render_template("country.html", country=country_info, flag=flag_success)
-
-@main.route('/map')
-def index():
-    #create the connection string
-    con=create_engine('mysql+mysqldb://wbuser:wbpwd@192.168.1.117:3306/wb',
-    echo=False)
-    #get data
-    datar=pandas.read_sql('SELECT * FROM wbdt', con)
-    #keep only data for 2014
-    datar14=datar[datar.yr==2014]
-    #assign the dataframe to a variable "table"
-    return render_template('table.html',table=datar14)
