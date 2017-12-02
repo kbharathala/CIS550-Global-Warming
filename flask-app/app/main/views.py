@@ -1,14 +1,14 @@
+from . import main 
 from flask import Flask, render_template
 import pymysql
 from pymongo import MongoClient
 import gridfs
-app = Flask(__name__)
 
-@app.route("/")
+@main.route("/")
 def hello():
     return "Hello World!"
 
-@app.route("/country/<country>")
+@main.route("/country/<country>")
 def country(country):
     connection = pymysql.connect(host="proj1.ci4g2wbj7lrc.us-west-2.rds.amazonaws.com", user="rip_us", password="abdu9000", db="proj", charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor)
     res = None
