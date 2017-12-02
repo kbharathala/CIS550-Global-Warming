@@ -1,5 +1,5 @@
-from . import main 
-from flask import Flask, render_template
+from . import main
+from flask import Flask, render_template, url_for
 import pymysql
 from pymongo import MongoClient
 import gridfs
@@ -35,7 +35,8 @@ def country(country):
     flag_success = False
     try:
         img = fs.get(db['flags'].find_one({"country": country})['id']).read()
-        f = open("static/images/temp.png", "wb")
+        filename = 'app/'+url_for("static", filename="images/temp.png")
+        f = open(filename, "wb")
         f.write(img)
         f.close()
         flag_success = True
