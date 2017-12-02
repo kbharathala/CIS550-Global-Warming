@@ -20,11 +20,22 @@ router.get('/country/:country', function(req, res, next) {
   var country_name = req.params["country"];
   var query = 'SELECT * from Country C where C.Name = \"' + country_name + '\";'
   console.log(query);
+  var result = null;
   connection.query(query, function(error, results, fields) {
     if (error) throw error;
     console.log(results);
+    console.log(results[0]);
+    result = results[0];
+    res.render('country', {country: result});
   });
-  res.render('index', {title: country_name});
+  /*if (result != null) {
+    console.log("here");
+    res.render('country', {country: result});
+  }
+  else {
+    console.log("here2");
+    res.render('index', {title: country_name});
+  }*/
 });
 
 module.exports = router;
