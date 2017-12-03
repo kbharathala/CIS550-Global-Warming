@@ -52,16 +52,13 @@ def country(country):
         img = fs.get(db['flags'].find_one({"country": country})['id']).read()
         fileprefix = 'app'+url_for("static", filename="images/")
         res = os.system("rm -rf " + fileprefix + "*")
-        print(res)
         filename = country
         f = open(fileprefix+country+".png", "wb")
         f.write(img)
         f.close()
         flag_success = True
-        print("here")
     except Exception:
         pass
-    print("done")
     return render_template("country.html", country=country_info, img=filename, time_series=time_info)
 
 @main.route('/map')
