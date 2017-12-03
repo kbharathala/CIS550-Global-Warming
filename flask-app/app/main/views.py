@@ -4,11 +4,12 @@ import pymysql
 from pymongo import MongoClient
 import gridfs
 import pandas
+import os
 from sqlalchemy import create_engine
 
 @main.route("/")
-def hello():
-    return "Hello World!"
+def index2():
+    return render_template("index.html")
 
 @main.route("/country/<country>")
 def country(country):
@@ -29,20 +30,39 @@ def country(country):
         if res is not None:
             for r in res:
                 country_info[r['fname']] = float(r['percent_usage'])
+        sql = 'SELECT t.name, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u, Form f WHERE u.fname = f.Name) t WHERE t.name = \"' + country + '\"'
+        cursor.execute(sql)
+        res = cursor.fetchall()
+        if res is not None:
+            country_info['Efficiency'] = res[0]['overall_efficiency']
+    time_info = {"Year": [], "Emissions": []}
+    with connection.cursor() as cursor:
+        sql = "Select * from Emissions E where E.Country = \"" + country + "\";"
+        cursor.execute(sql)
+        res = cursor.fetchall()
+        if res is not None:
+            for i in range(len(res)):
+                time_info['Year'].append(int(res[i]['Year']))
+                time_info['Emissions'].append(float(res[i]['Emissions']))
     client = MongoClient('ec2-34-209-155-18.us-west-2.compute.amazonaws.com', 27017)
     db = client['proj']
     fs = gridfs.GridFS(db)
-    flag_success = False
+    filename = None
     try:
         img = fs.get(db['flags'].find_one({"country": country})['id']).read()
-        filename = 'app/'+url_for("static", filename="images/temp.png")
-        f = open(filename, "wb")
+        fileprefix = 'app'+url_for("static", filename="images/")
+        res = os.system("rm -rf " + fileprefix + "*")
+        print(res)
+        filename = country
+        f = open(fileprefix+country+".png", "wb")
         f.write(img)
         f.close()
         flag_success = True
+        print("here")
     except Exception:
         pass
-    return render_template("country.html", country=country_info, flag=flag_success)
+    print("done")
+    return render_template("country.html", country=country_info, img=filename, time_series=time_info)
 
 @main.route('/map')
 def index():
