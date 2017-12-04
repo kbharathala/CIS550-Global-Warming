@@ -4,12 +4,14 @@
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </header>
 <body>
   <h1>{{ country['Name'] }}</h1>
-  {% if flag %}
-    <img src={{ url_for('static', filename="images/temp.png") }} width="120" height="90" />
+  {% if img is not none %}
+    <img src={{ url_for("static", filename="images/"+ img + ".png") }} width="120" height="90" />
   {% endif %}
+  <h2>Country Details</h2>
   <table class="table">
   <tbody>
     {% for key in country.keys() %}
@@ -21,5 +23,16 @@
     {% endif %}
     {% endfor %}
   </tbody>
+  <div id="emissionsDiv"></div>
+  <script>
+    var trace = {
+        x: {{ time_series["Year"] }},
+        y: {{ time_series["Emissions"] }},
+        mode: 'lines'
+    };
+    var data = [trace];
+    var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions' }};
+    Plotly.newPlot("emissionsDiv", data, layout);
+  </script>
 </body>
 </html>
