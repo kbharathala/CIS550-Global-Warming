@@ -49,6 +49,9 @@ def get_infobox(country, country2):
   desc = soup.find('b', string=country).find_parent().text
   result['Description'] = strip_brackets(desc)
 
+
+
+
   """
   result = {}
   for tr in table.find_all('tr'):
@@ -70,7 +73,6 @@ connection = pymysql.connect(host='proj1.ci4g2wbj7lrc.us-west-2.rds.amazonaws.co
 #     sql = 'ALTER TABLE Country ADD Population int, ADD GDP int, ADD Gini real, Add HDI real'
 #     cursor.execute(sql)
 
-bad_scraped_countries = set();
 
 with connection.cursor() as cursor:
   sql = 'SELECT Name FROM Country'
@@ -79,10 +81,10 @@ with connection.cursor() as cursor:
   for country in country_list:
     for key, country_name in country.items():
       if (contains_multiple_words(country_name)):
-        word_set = country_name.split(" ")
+        word_set = country_name.split(' ')
         cname_underscored = word_set[0]
         for word in word_set[1:]:
-          cname_underscored = cname_underscored + "_" + word
+          cname_underscored = cname_underscored + '_' + word
       else:
         cname_underscored = country_name
 
@@ -90,15 +92,26 @@ with connection.cursor() as cursor:
         result = get_infobox(cname_underscored, country_name)
 
       except Exception as e:
-        print("Error: Could not pull data from Wiki for " + country_name)
-        bad_scraped_countries.add(country_name)
+        print(e)
+        
+
+      try: 
+        sql_add_info1 = 'UPDATE Country SET LandArea = ' + str(result['Land Area']) + ', Population = ' + str(result['Population']) + ', GDP = ' + str(result['GDP']) + ', Gini = ' + str(result['Gini']) + ', HDI = ' + str(result['HDI']) + ' WHERE Name = \"' + country_name + '\" ;'
+        print(sql_add_info1)
+        cursor.execute(sql_add_info1)
+      except Exception as e:
+        print(e)
         continue
 
+
       try:
-        sql_add_info = 'UPDATE Country SET Description = \"' + result['Description'] + '\", LandArea = ' + str(result['Land Area']) + ', Population = ' + str(result['Population']) + ', GDP = ' + str(result['GDP']) + ', Gini = ' + str(result['Gini']) + ', HDI = ' + str(result['HDI']) + ' WHERE Name = \"' + country_name + '\" ;'
-        cursor.execute(sql_add_info)
+        sql_add_info2 = 'UPDATE Country SET Description = \"' + result['Description'] + '\"' + ' WHERE Name = \"' + country_name + '\" ;'
+        print(sql_add_info2)
+        cursor.execute(sql_add_info2)
       except Exception as e:
+        print(e)
         continue
+
 
 
 
