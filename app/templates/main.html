@@ -6,4 +6,9 @@
       <p><input type=file name=file>
          <input type=submit value=Upload>
     </form>
+    <h2>Country Search</h2>
+    <form id="countrySearchForm" onsubmit="console.log('here'); console.log(document.getElementById('countrySearch').value); window.location.href = 'http://localhost:5000/country/'+document.getElementById('countrySearch').value; return false;">
+        <input id="countrySearch" type="search" name="countrysearch">
+        <input type="submit" value="Submit" id="submitCountrySearch">
+    </form>
 {% endblock %}
