@@ -23,3 +23,4 @@ itsdangerous==0.24
 webassets==0.10.1
 pymysql==0.7.11
 pymongo==3.5.1
+pandas
