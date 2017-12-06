@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+{% block body %}
+    <nav class="navbar navbar-default navbar-static-top">
+    <div class="container">
+    <div class="navbar-header">
+        <a class="navbar-brand" href"{{ url_for('main.index') }}">Climalyze</a>
+    </div>
+        <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="height:1px;">
+            <ul class="nav navbar-nav">
+                <li>
+                    <a class="nav-link" href="{{ url_for('main.index2') }}">Home</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{{ url_for('main.country_search') }}">Country Search</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{{ url_for('main.aggregate_filter') }}">Statistical Filters</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    </nav>
+    <form id="aggregateForm" onsubmit="return goToAggregate();">
+        <select id="metricDropdown">
+            <option value="Emissions">Emissions</option>
+            <option value="HDI">HDI</option>
+            <option value="Population">Population</option>
+            <option value="Gini">Gini</option>
+            <option value="LandArea">LandArea</option>
+            <option value="GDP">GDP</option>
+        </select>
+        <input id="minValue" type="search">
+        <input id="maxValue" type="search">
+        <input id="aggregateSubmit" type="submit" value="Submit">
+    </form>
+
+<script>
+    function goToAggregate() {
+            console.log('here');
+            console.log(document.getElementById('metricDropdown').options);
+            window.location.href = window.location.href+'aggregate?metric='+document.getElementById('metricDropdown').options[document.getElementById('metricDropdown').selectedIndex].value+'&min='+document.getElementById('minValue').value + '&max='+document.getElementById('maxValue').value;
+            console.log(window.location.href);
+            return false;
+    }
+</script>
+{% endblock %}
