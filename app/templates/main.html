@@ -7,7 +7,7 @@
     </div>
         <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="height:1px;">
             <ul class="nav navbar-nav">
-                <li>
+                <li class="active">
                     <a class="nav-link" href="{{ url_for('main.index2') }}">Home</a>
                 </li>
                 <li>
@@ -20,10 +20,12 @@
         </div>
     </div>
     </nav>
-	<h1>Upload New File</h1>
+	<!--<h1>Upload New File</h1>
     <div class=flash>{{ get_flashed_messages()[-1] }}</div>
     <form action="" method=post enctype=multipart/form-data>
       <p><input type=file name=file>
          <input type=submit value=Upload>
-    </form>
+    </form>-->
+    <h1>Welcome!</h1>
+    Climalyze allows you to analyze the relationship between economic factors and a country's contribution to climate change. You can search for a spceific country or filter all countries by an economic or climate-related statistic. We hope that this software can help people understand interactions between climate and economic data better.
 {% endblock %}
