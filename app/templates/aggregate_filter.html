@@ -20,25 +20,66 @@
         </div>
     </div>
     </nav>
-    <form id="aggregateForm" onsubmit="return goToAggregate();">
-        <select id="metricDropdown">
-            <option value="Emissions">Emissions</option>
-            <option value="HDI">HDI</option>
-            <option value="Population">Population</option>
-            <option value="Gini">Gini</option>
-            <option value="LandArea">LandArea</option>
-            <option value="GDP">GDP</option>
-        </select>
-        <input id="minValue" type="search">
-        <input id="maxValue" type="search">
-        <input id="aggregateSubmit" type="submit" value="Submit">
-    </form>
 
+<div style="text-align:center">
+    <div style="display: inline-block">
+    <h2>Filter by Statistics</h2>
+    <form id="aggregateForm" onsubmit="return goToAggregate();">
+        <select id="metricDropdown" class="form-control" style="width: 200px; float: left; margin: 10px">
+              <option value="Emissions">Emissions</option>
+              <option value="HDI">HDI</option>
+              <option value="Population">Population</option>
+              <option value="Gini">Gini</option>
+              <option value="LandArea">LandArea</option>
+              <option value="GDP">GDP</option>
+        </select>
+        <div style="float: left;width: 100px; margin: 10px">
+          <input id="minValue" type="search" class="form-control" placeholder="Min">
+        </div>
+        <div style="float: left;width: 100px; margin: 10px">
+          <input id="maxValue" type="search" class="form-control" placeholder="Max">
+        </div>
+        <div style="float: left; width:100px; margin: 10px">
+          <input id="aggregateSubmit" type="submit" value="Submit" class="form-control">
+        </div>
+    </form>
+    </div>
+</div>
+{% if agg is not none %}
+  <div style="text-align:center">
+  <div style="display: inline-block">
+  <table class="table">
+  <thead>
+    <tr>
+      <th scope="col" style="text-align: center;">Metric</th>
+      <th scope="col" style="text-align: center;">Max</th>
+      <th scope="col" style="text-align: center;">Average</th>
+      <th scope="col" style="text-align: center;">Min</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for key in agg.keys() %}
+    <tr>
+      <td>{{ key }}</td>
+      <td>{{ agg[key]['max'] }}</td>
+      <td>{{ agg[key]['avg'] }}</td>
+      <td>{{ agg[key]['min'] }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+  </table>
+  {% if countries is not none and countries|length > 0 %}
+    {% for c in countries %}
+      <div class="col-sm-4"><a href="{{ url_for('main.country', country=c) }}"><h3 class="title">{{ c }}</h3></a></div>
+    {% endfor %}
+  {% endif %}
+  </div>
+  </div>
+{% endif %}
 <script>
     function goToAggregate() {
-            console.log('here');
-            console.log(document.getElementById('metricDropdown').options);
-            window.location.href = window.location.href+'aggregate?metric='+document.getElementById('metricDropdown').options[document.getElementById('metricDropdown').selectedIndex].value+'&min='+document.getElementById('minValue').value + '&max='+document.getElementById('maxValue').value;
+            console.log(window.location.href.split('/'));
+            window.location.href = 'http://'+window.location.href.split('/')[2]+'/aggregate?metric='+document.getElementById('metricDropdown').options[document.getElementById('metricDropdown').selectedIndex].value+'&min='+document.getElementById('minValue').value + '&max='+document.getElementById('maxValue').value;
             console.log(window.location.href);
             return false;
     }

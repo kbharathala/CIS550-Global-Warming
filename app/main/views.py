@@ -11,16 +11,19 @@ from sqlalchemy import create_engine
 def index2():
     return render_template("main.html")
 
+@main.route("/country/")
 @main.route("/country_search")
 def country_search():
-    return render_template("country_search.html")
+    return render_template("country_search.html", country=None)
 
 @main.route("/aggregate_filter")
 def aggregate_filter():
-    return render_template("aggregate_filter.html")
+    return render_template("aggregate_filter.html", agg=None)
 
 @main.route("/country/<country>")
-def country(country):
+def country(country=None):
+    if country is None:
+        return country_search()
     connection = pymysql.connect(host="proj1.ci4g2wbj7lrc.us-west-2.rds.amazonaws.com", user="rip_us", password="abdu9000", db="proj", charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor)
     res = None
     country_info = {'Name': country}
@@ -67,7 +70,7 @@ def country(country):
         flag_success = True
     except Exception:
         pass
-    return render_template("country.html", country=country_info, img=filename, time_series=time_info)
+    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info)
 
 @main.route('/aggregate')
 def aggregate():
@@ -79,11 +82,10 @@ def aggregate():
     query = "SELECT "
     count = 0
     for m in metrics:
-        if m != metric:
-            if count > 0:
-                query += ", "
-            query += "AVG(" + m + ") as avg_"+m+", MIN("+m+") as min_"+m+", MAX("+m+") as max_"+m
-            count += 1
+        if count > 0:
+            query += ", "
+        query += "AVG(" + m + ") as "+m+"_AVG, MIN("+m+") as "+m+"_MIN, MAX("+m+") as "+m+"_MAX"
+        count += 1
     from_part = " FROM (SELECT * FROM ((SELECT t.name2, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name2, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u inner join Form f on u.fname = f.Name) t GROUP BY t.name2) E inner join (SELECT M.Country, AVG(M.Emissions) as emissions FROM Emissions M WHERE M.Year >= " + str(current_year-10) + " GROUP BY M.Country) K on E.name2 = K.country) inner join Country C on E.name2 = C.Name) A WHERE "+m+" >= " + str(min_val) + " AND " + m + " <= " + str(max_val)
     query += from_part
     print(query)
@@ -93,6 +95,9 @@ def aggregate():
         cursor.execute(query)
         res = cursor.fetchall()
     agg = res[0]
+    stats = {}
+    for m in metrics:
+        stats[m] = {'max': agg[m+'_MAX'], 'min': agg[m+'_MIN'], 'avg': agg[m+'_AVG']}
     print(agg)
     res = None
     with connection.cursor() as cursor:
@@ -103,7 +108,8 @@ def aggregate():
     if res is not None:
         for r in res:
             countries.append(r['Name'])
-    return render_template("main.html", agg, countries)
+    stats['Number of Countries'] = {'max': len(countries), 'min': len(countries), 'avg': len(countries)}
+    return render_template("aggregate_filter.html", agg=stats, countries=countries)
 
 @main.route('/map')
 def index():

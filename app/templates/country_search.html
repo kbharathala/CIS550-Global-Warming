@@ -20,9 +20,42 @@
         </div>
     </div>
     </nav>
+    <div style="text-align:center">
+    <div style="display:inline-block">
     <h2>Country Search</h2>
-    <form id="countrySearchForm" onsubmit="console.log(window.location.href); window.location.href = 'localhost:5000/country/'+document.getElementById('countrySearch').value; console.log(window.location.href); return false;">
-        <input id="countrySearch" type="search" name="countrysearch">
-        <input type="submit" value="Submit" id="submitCountrySearch">
+    <form id="countrySearchForm" onsubmit="console.log(window.location.href.split('/')); window.location.href = 'http://'+window.location.href.split('/')[2]+'/country/'+document.getElementById('countrySearch').value; console.log(window.location.href); return false;">
+        <input id="countrySearch" type="search" name="countrysearch" class="form-control" placeholder="Country Name" style="float:left; width: 200px; margin: 10px;">
+        <input type="submit" value="Submit" id="submitCountrySearch" class="form-control" style="float:left; width:100px; margin: 10px;">
     </form>
+    </div>
+    </div>
+{% if country is not none %}
+  <h1>{{ country['Name'] }}</h1>
+  {% if img is not none %}
+    <img src={{ url_for("static", filename="images/"+ img + ".png") }} width="120" height="90" />
+  {% endif %}
+  <h2>Details</h2>
+  <table class="table">
+  <tbody>
+    {% for key in country.keys() %}
+    {% if key != "Name" and key != "LandArea" %}
+        <tr>
+          <th scope="row">{{ key }}</th>
+          <td>{{ country[key] }}</td>
+        </tr>
+    {% endif %}
+    {% endfor %}
+  </tbody>
+  <div id="emissionsDiv"></div>
+  <script>
+    var trace = {
+        x: {{ time_series["Year"] }},
+        y: {{ time_series["Emissions"] }},
+        mode: 'lines'
+    };
+    var data = [trace];
+    var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions' }};
+    Plotly.newPlot("emissionsDiv", data, layout);
+  </script>
+{% endif %}
 {% endblock %}
