@@ -7,6 +7,16 @@
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <div class=page>
+  {% with messages = get_flashed_messages() %}
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-error alert-dismissable" style="background-color: red;" role="alert">
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">x</span></button>
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+  {% endwith %}
   {% block body %}
 
   {% endblock %}

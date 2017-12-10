@@ -1,5 +1,5 @@
 from . import main
-from flask import Flask, render_template, url_for, request
+from flask import Flask, render_template, url_for, request, redirect, flash
 import pymysql
 from pymongo import MongoClient
 import gridfs
@@ -31,6 +31,9 @@ def country(country=None):
         sql = 'Select * from Country where Country.Name = \"' + country + '\";'
         cursor.execute(sql)
         res = cursor.fetchall()
+        if res is None or len(res) == 0:
+            flash('No such country', 'error')
+            return country_search()
         if res is not None:
             res = res[0]
             for key in res.keys():
@@ -55,6 +58,23 @@ def country(country=None):
             for i in range(len(res)):
                 time_info['Year'].append(int(res[i]['Year']))
                 time_info['Emissions'].append(float(res[i]['Emissions']))
+    temp_info = None
+    with connection.cursor() as cursor:
+        sql = 'Select T.Year, T.Month, T.Value from Temp T inner join Month M on T.Month = M.Month where T.Country = \"' + country + '\" and T.Value is not NULL group by T.Country, T.Year, T.Month order by T.Year desc, M.MonthNum desc limit 1'
+        cursor.execute(sql)
+        res = cursor.fetchall()
+        if res is not None:
+            temp_info = {}
+            temp_info['RecentYear'] = res[0]['Year']
+            temp_info['RecentMonth'] = res[0]['Month']
+            temp_info['Value'] = float(res[0]['Value'])/100.0
+            sql = 'Select Year from Temp where Value is not NULL and Value >= ' + str(res[0]['Value']) + ' and Year <> ' + str(res[0]['Year']) + ' and Country = \"' + country + '\" and Month=\"' + res[0]['Month'] + '\" group by Country, Year, Month order by (Value-' + str(res[0]['Value']) + ') desc'
+            cursor.execute(sql)
+            res = cursor.fetchall()
+            if res is not None:
+                temp_info['HigherYears'] = []
+                for y in res:
+                    temp_info['HigherYears'].append(str(y['Year']))
     client = MongoClient('ec2-34-209-155-18.us-west-2.compute.amazonaws.com', 27017)
     db = client['proj']
     fs = gridfs.GridFS(db)
@@ -70,7 +90,7 @@ def country(country=None):
         flag_success = True
     except Exception:
         pass
-    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info)
+    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info)
 
 @main.route('/aggregate')
 def aggregate():

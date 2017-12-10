@@ -45,6 +45,12 @@
         </tr>
     {% endif %}
     {% endfor %}
+    {% if temp_info is not none %}
+      <tr>
+        <th scope="row">Temperature in {{ temp_info['RecentMonth'] + ' ' + temp_info['RecentYear']|string }}: {{ temp_info['Value'] }} degrees Celsius</th>
+        <td>Years with higher temperature in {{ temp_info['RecentMonth'] }}: {{ ','.join(temp_info['HigherYears']) }}</td>
+      </tr>
+    {% endif %}
   </tbody>
   <div id="emissionsDiv"></div>
   <script>
@@ -54,7 +60,7 @@
         mode: 'lines'
     };
     var data = [trace];
-    var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions' }};
+    var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions (kilotons)' }};
     Plotly.newPlot("emissionsDiv", data, layout);
   </script>
 {% endif %}
