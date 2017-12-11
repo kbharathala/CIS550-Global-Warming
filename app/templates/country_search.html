@@ -57,10 +57,23 @@
     var trace = {
         x: {{ time_series["Year"] }},
         y: {{ time_series["Emissions"] }},
-        mode: 'lines'
+        mode: 'lines',
+        name: 'Emissions'
     };
     var data = [trace];
+    {% if time_series["TempYear"]|length > 0 %}
+    var temp_trace = {
+        x: {{ time_series["TempYear"] }},
+        y: {{ time_series["Temp"] }},
+        mode: 'lines',
+        name: 'Temperature',
+        yaxis: 'y2'
+    };
+    data.push(temp_trace);
+    var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions (kilotons)' }, yaxis2: {title: 'Temperature (degrees Celsius)', side: 'right', overlaying: 'y'}};
+    {% else %}
     var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions (kilotons)' }};
+    {% endif %}
     Plotly.newPlot("emissionsDiv", data, layout);
   </script>
 {% endif %}
