@@ -55,7 +55,7 @@
       </tr>
     {% endif %}
       <tr>
-        <th scope="row">Total Impact from Fuel Exports</th>
+        <th scope="row">Total Impact from Fuel Exports (kilotons of CO2) </th>
         <td> {{ impact }} </td>
       </tr>
     </tbody>
@@ -77,7 +77,7 @@
           yaxis: 'y2'
       };
       data.push(temp_trace);
-      var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions (kilotons)' }, yaxis2: {title: 'Temperature (degrees Celsius)', side: 'right', overlaying: 'y'}};
+      var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions and Temperature Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions (kilotons)' }, yaxis2: {title: 'Temperature (degrees Celsius)', side: 'right', overlaying: 'y'}};
       {% else %}
       var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions (kilotons)' }};
       {% endif %}

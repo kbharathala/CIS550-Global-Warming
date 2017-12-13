@@ -143,10 +143,10 @@ def country(country=None):
     """
     with driver.session() as session:
         with session.begin_transaction() as tx:
-            country_info['TotalExports'] = [x['TotalExports'] for x in tx.run(totalexports)][0]
-            country_info['TotalImports'] = [x['TotalImports'] for x in tx.run(totalimports)][0]
-            country_info['TotalFuelExports'] = [x['TotalFuelExports'] for x in tx.run(totalfuelexports)][0]
-            country_info['TotalFuelImports'] = [x['TotalFuelImports'] for x in tx.run(totalfuelimports)][0]
+            country_info['TotalExports (Millions of USD)'] = [x['TotalExports'] for x in tx.run(totalexports)][0]
+            country_info['TotalImports (Millions of USD)'] = [x['TotalImports'] for x in tx.run(totalimports)][0]
+            country_info['TotalFuelExports (Millions of USD)'] = [x['TotalFuelExports'] for x in tx.run(totalfuelexports)][0]
+            country_info['TotalFuelImports (Millions of USD)'] = [x['TotalFuelImports'] for x in tx.run(totalfuelimports)][0]
             fuel_exports = pandas.DataFrame([(r['neighbor.name'], round(r['weight']*100,2)) for r in tx.run(query)])
             fuel_exports.columns = ['Country', 'Weight']
     merged = fuel_exports.merge(neighbor_emissions, on='Country')
