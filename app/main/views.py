@@ -156,7 +156,30 @@ def comparison_search():
 
 @main.route("/comparison/<country1>/<country2>")
 def compare(country1=None, country2=None):
-    return render_template("comparison_search.html", country1=country1, country2=country2)
+    if country1 is None or country2 is None:
+        return comparison_search()
+    connection = pymysql.connect(host="proj1.ci4g2wbj7lrc.us-west-2.rds.amazonaws.com", user="rip_us", password="abdu9000", db="proj", charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor)
+    res = None
+    time_info1 = {"Year": [], "Emissions": [], 'TempYear': [], 'Temp': []}
+    with connection.cursor() as cursor:
+        sql = "Select * from Emissions E where E.Country = \"" + country1 + "\";"
+        cursor.execute(sql)
+        res = cursor.fetchall()
+        if res is not None:
+            for i in range(len(res)):
+                time_info1['Year'].append(int(res[i]['Year']))
+                time_info1['Emissions'].append(float(res[i]['Emissions']))
+    time_info2 = {"Year": [], "Emissions": [], 'TempYear': [], 'Temp': []}
+    with connection.cursor() as cursor:
+        sql = "Select * from Emissions E where E.Country = \"" + country2 + "\";"
+        cursor.execute(sql)
+        res = cursor.fetchall()
+        if res is not None:
+            for i in range(len(res)):
+                time_info2['Year'].append(int(res[i]['Year']))
+                time_info2['Emissions'].append(float(res[i]['Emissions']))
+    time_info = [time_info1, time_info2]
+    return render_template("comparison_search.html", country1=country1, country2=country2, time_series=time_info)
 
 
 
