@@ -108,7 +108,7 @@ def country(country=None):
         flag_success = True
     except Exception:
         pass
-    fuel_exports = None
+    merged = None
     impact = None
     driver = neo4j_driver
     query = """
