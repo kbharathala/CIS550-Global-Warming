@@ -195,14 +195,16 @@ def aggregate():
                 sql_q = "SELECT Country, Emissions FROM Emissions WHERE Year=2015"
                 cursor.execute(sql_q)
                 res = cursor.fetchall()
-                df2 = pandas.DataFrame(res)
-            merged = results.merge(df2, left_on='Importer', right_on='Country')
+                emissions = pandas.DataFrame(res)
+            merged = results.merge(emissions, left_on='Importer', right_on='Country')
             merged = merged[merged['Importer'] != 'World']
             merged['Impact'] = merged['Weight'] * merged['Emissions']
             results = merged.groupby('Exporter')['Impact'].sum()
+            results = results.reindex(emissions['Country'])
             results = pandas.DataFrame(results[(results >= int(min_val)) & (results <= int(max_val))].sort_values(ascending=False)).reset_index()
             results.columns = ['Country', metric]
-    except:
+    except Exception as e:
+        print(e)
         return render_template("aggregate_filter.html", agg=None, countries=None, metric=metric)
 
     if len(results) <= 1:
@@ -217,7 +219,7 @@ def aggregate():
             query += ", "
         query += "AVG(" + m + ") as "+m+"_AVG, MIN("+m+") as "+m+"_MIN, MAX("+m+") as "+m+"_MAX"
         count += 1
-    from_part = " FROM (SELECT * FROM ((SELECT t.name2, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name2, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u inner join Form f on u.fname = f.Name) t GROUP BY t.name2) E inner join (SELECT M.Country, AVG(M.Emissions) as emissions FROM Emissions M WHERE M.Year >= " + str(current_year-10) + " GROUP BY M.Country) K on E.name2 = K.country) inner join Country C on E.name2 = C.Name) A WHERE A.Name IN " + str(tuple(results['Country']))
+    from_part = " FROM (SELECT * FROM ((SELECT t.name2, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name2, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u inner join Form f on u.fname = f.Name) t GROUP BY t.name2) E inner join (SELECT M.Country, AVG(M.Emissions) as emissions FROM Emissions M WHERE M.Year >= " + str(current_year-10) + " GROUP BY M.Country) K on E.name2 = K.country) inner join Country C on E.name2 = C.Name) A WHERE A.Name IN " + str(tuple([str(c) for c in results['Country']]))
     query += from_part
     print(query)
     res = None
