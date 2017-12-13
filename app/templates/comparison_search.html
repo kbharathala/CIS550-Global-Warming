@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+{% block body %}
+    <nav class="navbar navbar-default navbar-static-top">
+    <div class="container">
+    <div class="navbar-header">
+        <a class="navbar-brand" href"{{ url_for('main.index') }}">Climalyze</a>
+    </div>
+        <div id="navbar" class="navbar-collapse collapse" aria-expanded="false" style="height:1px;">
+            <ul class="nav navbar-nav">
+                <li>
+                    <a class="nav-link" href="{{ url_for('main.index2') }}">Home</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{{ url_for('main.country_search') }}">Country Search</a>
+                </li>
+                <li>
+                    <a class="nav-link" href="{{ url_for('main.aggregate_filter') }}">Statistical Filters</a>
+                </li>
+                <li class="active">
+                    <a class="nav-link" href="{{ url_for('main.comparison_search') }}">Comparisons</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    </nav>
+    <div style="text-align:center">
+    <div style="display:inline-block">
+    <h2>Comparison Search</h2>
+    <form id="country1SearchForm" onsubmit="console.log(window.location.href.split('/')); window.location.href = 'http://'+window.location.href.split('/')[2]+'/comparison/'+document.getElementById('country1Search').value+'/'+document.getElementById('country2Search').value; console.log(window.location.href); return false;">
+        <input id="country1Search" type="search" name="countrysearch" class="form-control" placeholder="Country 1 Name" style="float:left; width: 200px; margin: 10px;">
+        <input id="country2Search" type="search" name="countrysearch" class="form-control" placeholder="Country 2 Name" style="float:left; width: 200px; margin: 10px;">
+        <input type="submit" value="Submit" id="submitCountrySearch" class="form-control" style="float:left; width:100px; margin: 10px;">
+    </form>
+    </div>
+    </div>
+
+{% if country1 is not none and country2 is not none%}
+  <h1>{{ country1 }} vs. {{country2}}</h1>
+
+{% endif %}
+{% endblock %}

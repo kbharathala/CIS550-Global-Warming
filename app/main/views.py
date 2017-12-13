@@ -148,3 +148,15 @@ def index():
     datar14=datar[datar.yr==2014]
     #assign the dataframe to a variable "table"
     return render_template('table.html',table=datar14)
+
+@main.route('/comparison')
+@main.route('/comparison_search')
+def comparison_search():
+    return render_template("comparison_search.html", country1=None, country2=None)
+
+@main.route("/comparison/<country1>/<country2>")
+def compare(country1=None, country2=None):
+    return render_template("comparison_search.html", country1=country1, country2=country2)
+
+
+
