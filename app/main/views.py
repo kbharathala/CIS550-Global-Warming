@@ -225,8 +225,11 @@ def compare(country1=None, country2=None):
         if res is not None:
             for r in res:
                 uses2[str(r['fname'])] = float(r['percent_usage'])
-    uses = [uses1, uses2]
+    uses = {0:uses1, 1:uses2}
 
+    print(type(uses))
+    uses = dict(uses)
+    print(type(uses))
     print(uses[0].values())
     print(uses[0].keys())
 
