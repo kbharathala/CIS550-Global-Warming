@@ -63,16 +63,16 @@ def country(country=None):
         sql = "Select * from Emissions E where E.Country = \"" + country + "\";"
         cursor.execute(sql)
         res = cursor.fetchall()
+        sql2 = 'Select S.Year, AVG(S.Value) as avg from (Select E.Year, T.Value from (Select * from Emissions where Country = \"' + country + '\") E left join (Select * from Temp where Country = \"' + country.upper() + '\") T on E.Year = T.Year) S group by S.Year'
+        cursor.execute(sql2)
+        res2 = cursor.fetchall()
         if res is not None:
             for i in range(len(res)):
                 time_info['Year'].append(int(res[i]['Year']))
                 time_info['Emissions'].append(float(res[i]['Emissions']))
-                sql = 'Select AVG(Value) as avg from Temp where Temp.Year = ' + str(time_info['Year'][-1]) + ' and Temp.Country = \"' + country.upper() + '\" and Temp.Value is not NULL'
-                cursor.execute(sql)
-                res2 = cursor.fetchall()
-                if res2 is not None and len(res2) > 0 and res2[0]['avg'] is not None:
+                if res2 is not None and len(res2) >= i+1 and res2[i]['avg'] is not None:
                     time_info['TempYear'].append(time_info['Year'][-1])
-                    time_info['Temp'].append(float(res2[0]['avg'])/100.0)
+                    time_info['Temp'].append(float(res2[i]['avg'])/100.0)
     temp_info = None
     with connection.cursor() as cursor:
         sql = 'Select T.Year, T.Month, T.Value from Temp T inner join Month M on T.Month = M.Month where T.Country = \"' + country + '\" and T.Value is not NULL group by T.Country, T.Year, T.Month order by T.Year desc, M.MonthNum desc limit 1'
