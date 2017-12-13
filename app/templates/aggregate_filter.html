@@ -87,7 +87,7 @@
   <tbody>
     {% for i, row in countries.iterrows() %}
     <tr>
-      <td>{{ row['Country'] }}</td>
+      <td><a href="{{url_for('main.country', country=row['Country'])}}">{{ row['Country'] }}</a></td>
       <td>{{ row[metric] }}</td>
     </tr>
     {% endfor %}

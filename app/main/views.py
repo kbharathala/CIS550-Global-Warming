@@ -229,6 +229,7 @@ def aggregate():
     for m in metrics:
         stats[m] = {'max': agg[m+'_MAX'], 'min': agg[m+'_MIN'], 'avg': agg[m+'_AVG']}
     print(agg)
+    """
     res = None
     with connection.cursor() as cursor:
         cursor.execute("SELECT Name" + from_part)
@@ -238,7 +239,8 @@ def aggregate():
     if res is not None:
         for r in res:
             countries.append(r['Name'])
-    stats['Number of Countries'] = {'max': len(countries), 'min': len(countries), 'avg': len(countries)}
+    """
+    stats['Number of Countries'] = {'max': len(results), 'min': len(results), 'avg': len(results)}
     return render_template("aggregate_filter.html", agg=stats, countries=results, metric=metric)
 
 @main.route('/map')
