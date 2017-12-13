@@ -6,6 +6,7 @@ import gridfs
 import pandas
 import os
 from sqlalchemy import create_engine
+from neo4j.v1 import GraphDatabase
 
 @main.route("/")
 def index2():
@@ -69,7 +70,7 @@ def country(country=None):
         sql = 'Select T.Year, T.Month, T.Value from Temp T inner join Month M on T.Month = M.Month where T.Country = \"' + country + '\" and T.Value is not NULL group by T.Country, T.Year, T.Month order by T.Year desc, M.MonthNum desc limit 1'
         cursor.execute(sql)
         res = cursor.fetchall()
-        if res is not None:
+        try:
             temp_info = {}
             temp_info['RecentYear'] = res[0]['Year']
             temp_info['RecentMonth'] = res[0]['Month']
@@ -81,6 +82,9 @@ def country(country=None):
                 temp_info['HigherYears'] = []
                 for y in res:
                     temp_info['HigherYears'].append(str(y['Year']))
+        except:
+            temp_info = None
+            print('No Temp Info for ' + country)
     client = MongoClient('ec2-34-209-155-18.us-west-2.compute.amazonaws.com', 27017)
     db = client['proj']
     fs = gridfs.GridFS(db)
@@ -96,7 +100,34 @@ def country(country=None):
         flag_success = True
     except Exception:
         pass
-    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info)
+    fuel_exports = None
+    neo4j_driver = GraphDatabase.driver('bolt://ec2-34-201-111-94.compute-1.amazonaws.com:7687', auth=('neo4j','abdu9000'))
+    query = """
+    MATCH (input:CountryFuel {name:'""" + country + """'})-[exports:FuelExports]->(neighbor:CountryFuel)<-[neighborimports:FuelExports]-(:CountryFuel)
+    RETURN neighbor.name, exports.value/(SUM(neighborimports.value)+exports.value) AS weight
+    ORDER BY weight DESC
+    """
+    with neo4j_driver.session() as session:
+        with session.begin_transaction() as tx:
+            fuel_exports = []
+            for record in tx.run(query):
+                neighbor_emission = None
+                with connection.cursor() as cursor:
+                    sql_q = "SELECT Emissions FROM Emissions WHERE Year=2015 AND Country=\"" + record['neighbor.name'] + "\""
+                    try:
+                        cursor.execute(sql_q)
+                        res = cursor.fetchall()
+                        neighbor_emission = res[0]['Emissions']
+                    except:
+                        print('No Emissions for ' + record['neighbor.name'])
+                fuel_exports.append((record["neighbor.name"], round(record["weight"]*100,2), neighbor_emission))
+    impact = None
+    if fuel_exports is not None:
+        impact = 0
+        for importer in fuel_exports:
+            if importer[2] is not None and importer[0] != 'World':
+                impact += importer[1] * importer[2] / 100
+    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info, fuel_exports=fuel_exports, impact=impact)
 
 @main.route('/aggregate')
 def aggregate():
@@ -157,6 +188,3 @@ def comparison_search():
 @main.route("/comparison/<country1>/<country2>")
 def compare(country1=None, country2=None):
     return render_template("comparison_search.html", country1=country1, country2=country2)
-
-
-

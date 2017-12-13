@@ -32,7 +32,7 @@
     </form>
     </div>
     </div>
-{% if country is not none %}
+  {% if country is not none %}
   <h1>{{ country['Name'] }}</h1>
   {% if img is not none %}
     <img src={{ url_for("static", filename="images/"+ img + ".png") }} width="120" height="90" />
@@ -54,9 +54,13 @@
         <td>Years with higher temperature in {{ temp_info['RecentMonth'] }}: {{ ','.join(temp_info['HigherYears']) }}</td>
       </tr>
     {% endif %}
-  </tbody>
-  <div id="emissionsDiv"></div>
-  <script>
+      <tr>
+        <th scope="row">Total Impact from Fuel Exports</th>
+        <td> {{ impact }} </td>
+      </tr>
+    </tbody>
+    <div id="emissionsDiv"></div>
+    <script>
     var trace = {
         x: {{ time_series["Year"] }},
         y: {{ time_series["Emissions"] }},
@@ -78,6 +82,27 @@
     var layout = {title: '{{ country['Name'] }}' +': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions (kilotons)' }};
     {% endif %}
     Plotly.newPlot("emissionsDiv", data, layout);
-  </script>
+    </script>
+    <div id="fuelExportsDiv">
+      {% if country is not none %}
+      <table class="table">
+      <thead>
+        <tr>
+          <th scope="row">Importing Country</th>
+          <th>Percent Fuel Imports from {{ country['Name'] }}</th>
+          <th>Emissions of Importing Country</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in fuel_exports[:10] %}
+            <tr>
+              <th scope="row">{{ row[0] }}</th>
+              <td>{{ row[1] }} %</td>
+              <td>{{ row[2] }} </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+      {% endif %}
+    </div>
 {% endif %}
 {% endblock %}
