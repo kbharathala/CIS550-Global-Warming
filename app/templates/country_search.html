@@ -94,11 +94,11 @@
         </tr>
       </thead>
       <tbody>
-        {% for row in fuel_exports[:8] %}
+        {% for i, row in fuel_exports[:8].iterrows() %}
             <tr>
-              <th scope="row">{{ row[0] }}</th>
-              <td>{{ row[1] }} %</td>
-              <td>{{ row[2] }} </td>
+              <th scope="row">{{ row["Country"] }}</th>
+              <td>{{ row["Weight"] }} %</td>
+              <td>{{ row["Emissions"] }} </td>
             </tr>
         {% endfor %}
         </tbody>

@@ -8,6 +8,11 @@ import os
 from sqlalchemy import create_engine
 from neo4j.v1 import GraphDatabase
 
+print('Connecting to DataBases')
+sql_connection = pymysql.connect(host="proj1.ci4g2wbj7lrc.us-west-2.rds.amazonaws.com", user="rip_us", password="abdu9000", db="proj", charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor)
+mongo_client = MongoClient('ec2-34-209-155-18.us-west-2.compute.amazonaws.com', 27017)
+neo4j_driver = GraphDatabase.driver('bolt://ec2-34-201-111-94.compute-1.amazonaws.com:7687', auth=('neo4j','abdu9000'))
+
 @main.route("/")
 def index2():
     return render_template("main.html")
@@ -23,9 +28,12 @@ def aggregate_filter():
 
 @main.route("/country/<country>")
 def country(country=None):
+    global sql_connection
+    global mongo_client
+    global neo4j_driver
     if country is None:
         return country_search()
-    connection = pymysql.connect(host="proj1.ci4g2wbj7lrc.us-west-2.rds.amazonaws.com", user="rip_us", password="abdu9000", db="proj", charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor)
+    connection = sql_connection
     res = None
     country_info = {'Name': country}
     with connection.cursor() as cursor:
@@ -85,7 +93,7 @@ def country(country=None):
         except:
             temp_info = None
             print('No Temp Info for ' + country)
-    client = MongoClient('ec2-34-209-155-18.us-west-2.compute.amazonaws.com', 27017)
+    client = mongo_client
     db = client['proj']
     fs = gridfs.GridFS(db)
     filename = None
@@ -101,35 +109,25 @@ def country(country=None):
     except Exception:
         pass
     fuel_exports = None
-    neo4j_driver = GraphDatabase.driver('bolt://ec2-34-201-111-94.compute-1.amazonaws.com:7687', auth=('neo4j','abdu9000'))
+    impact = None
+    driver = neo4j_driver
     query = """
     MATCH (input:CountryFuel {name:'""" + country + """'})-[exports:FuelExports]->(neighbor:CountryFuel)<-[neighborimports:FuelExports]-(:CountryFuel)
     RETURN neighbor.name, exports.value/(SUM(neighborimports.value)+exports.value) AS weight
     ORDER BY weight DESC
     """
-    neighbor_emissions = {}
     with connection.cursor() as cursor:
         sql_q = "SELECT Country, Emissions FROM Emissions WHERE Year=2015"
         cursor.execute(sql_q)
-        res = cursor.fetchall()
-        for c in res:
-            neighbor_emissions[c['Country']] = c['Emissions']
-    with neo4j_driver.session() as session:
+        neighbor_emissions = pandas.DataFrame(cursor.fetchall())
+    with driver.session() as session:
         with session.begin_transaction() as tx:
-            fuel_exports = []
-            for record in tx.run(query):
-                try:
-                    neighbor_emission = neighbor_emissions[record['neighbor.name']]
-                    fuel_exports.append((record["neighbor.name"], round(record["weight"]*100,2), neighbor_emission))
-                except:
-                    print('No Emissions for ' + record['neighbor.name'])
-    impact = None
-    if fuel_exports is not None:
-        impact = 0
-        for importer in fuel_exports:
-            if importer[0] != 'World':
-                impact += importer[1] * importer[2] / 100
-    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info, fuel_exports=fuel_exports, impact=impact)
+            fuel_exports = pandas.DataFrame([(r['neighbor.name'], round(r['weight']*100,2)) for r in tx.run(query)])
+            fuel_exports.columns = ['Country', 'Weight']
+    merged = fuel_exports.merge(neighbor_emissions, on='Country')
+    tmp = merged[merged['Country'] != 'World']
+    impact = (tmp['Weight'] * tmp['Emissions'] / 100).sum()
+    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info, fuel_exports=merged, impact=impact)
 
 @main.route('/aggregate')
 def aggregate():
