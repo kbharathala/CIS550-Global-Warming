@@ -56,5 +56,37 @@
     Plotly.newPlot("emissionsDiv", data, layout);
   </script>
 
+  <div id="usesDiv"></div>
+  <script>
+    var data = [{
+        values: {{ uses[0].values()}},
+        labels: {{ uses[0].keys()|tojson|safe }},
+        domain: {
+            x: [.2, .5]
+        },
+        type: 'pie',
+        name: '{{country1}}'
+    }, {
+        values: {{ uses[1].values()}},
+        labels: {{ uses[1].keys()|tojson|safe }},
+        domain: {
+            x: [.5, .9]
+        },
+        type: 'pie',
+        name: '{{country2}}'
+    }];
+    var layout = {
+        title: '{{ country1 }}' + ' vs ' + '{{country2}}' + ': Resource Utilization', 
+        };
+    Plotly.newPlot("usesDiv", data, layout);
+  </script>
+
+<!--   <div id="uses2Div"></div>
+  <script>
+    var data = [];
+    var layout = {title: '{{ country2 }}' + ': Resource Usage'};
+    Plotly.newPlot("usesDiv", data, layout);
+  </script> -->
+
 {% endif %}
 {% endblock %}
