@@ -17,6 +17,7 @@ data/
 *.ipynb
 __pycache__/
 .ipynb_checkpoints/
+*.png
 
 # Coverage reports
 htmlcov

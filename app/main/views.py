@@ -127,7 +127,7 @@ def country(country=None):
     if fuel_exports is not None:
         impact = 0
         for importer in fuel_exports:
-            if importer[2] is not None and importer[0] != 'World':
+            if importer[0] != 'World':
                 impact += importer[1] * importer[2] / 100
     return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info, fuel_exports=fuel_exports, impact=impact)
 
