@@ -60,7 +60,7 @@
   <script>
     var data = [{
         values: {{ uses[0].values()}},
-        labels: {{ uses[0].keys()|tojson|safe }},
+        labels: {{ uses[0].keys()|list|tojson|safe }},
         domain: {
             x: [.2, .5]
         },
@@ -68,7 +68,7 @@
         name: '{{country1}}'
     }, {
         values: {{ uses[1].values()}},
-        labels: {{ uses[1].keys()|tojson|safe }},
+        labels: {{ uses[1].keys()|list|tojson|safe }},
         domain: {
             x: [.5, .9]
         },
