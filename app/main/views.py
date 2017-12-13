@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import gridfs
 import pandas
 import os
+import sys
 from sqlalchemy import create_engine
 from neo4j.v1 import GraphDatabase
 
@@ -131,9 +132,14 @@ def country(country=None):
 
 @main.route('/aggregate')
 def aggregate():
+    global sql_connection
     metric = request.args.get('metric')
     max_val = request.args.get('max')
+    if len(max_val) == 0:
+        max_val = sys.maxsize
     min_val = request.args.get('min')
+    if len(min_val) == 0:
+        min_val = 0
     metrics = ['HDI', 'LandArea', 'Population', 'GDP', 'Gini', 'overall_efficiency', 'Emissions']
     current_year = 2017
     query = "SELECT "
@@ -147,7 +153,7 @@ def aggregate():
     query += from_part
     print(query)
     res = None
-    connection = pymysql.connect(host="proj1.ci4g2wbj7lrc.us-west-2.rds.amazonaws.com", user="rip_us", password="abdu9000", db="proj", charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor)
+    connection = sql_connection
     with connection.cursor() as cursor:
         cursor.execute(query)
         res = cursor.fetchall()
@@ -187,9 +193,10 @@ def comparison_search():
 
 @main.route("/comparison/<country1>/<country2>")
 def compare(country1=None, country2=None):
+    global sql_connection
     if country1 is None or country2 is None:
         return comparison_search()
-    connection = pymysql.connect(host="proj1.ci4g2wbj7lrc.us-west-2.rds.amazonaws.com", user="rip_us", password="abdu9000", db="proj", charset="utf8mb4", cursorclass=pymysql.cursors.DictCursor)
+    connection = sql_connection
     res = None
     time_info1 = {"Year": [], "Emissions": [], 'TempYear': [], 'Temp': []}
     with connection.cursor() as cursor:
