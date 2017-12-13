@@ -227,13 +227,4 @@ def compare(country1=None, country2=None):
                 uses2[str(r['fname'])] = float(r['percent_usage'])
     uses = {0:uses1, 1:uses2}
 
-    print(type(uses))
-    uses = dict(uses)
-    print(type(uses))
-    print(uses[0].values())
-    print(uses[0].keys())
-
-
-
-
     return render_template("comparison_search.html", country1=country1, country2=country2, time_series=time_info, uses=uses)
