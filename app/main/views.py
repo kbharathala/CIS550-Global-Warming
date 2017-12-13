@@ -217,7 +217,7 @@ def aggregate():
             query += ", "
         query += "AVG(" + m + ") as "+m+"_AVG, MIN("+m+") as "+m+"_MIN, MAX("+m+") as "+m+"_MAX"
         count += 1
-    from_part = " FROM (SELECT * FROM ((SELECT t.name2, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name2, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u inner join Form f on u.fname = f.Name) t GROUP BY t.name2) E inner join (SELECT M.Country, AVG(M.Emissions) as emissions FROM Emissions M WHERE M.Year >= " + str(current_year-10) + " GROUP BY M.Country) K on E.name2 = K.country) inner join Country C on E.name2 = C.Name) A WHERE A.Name IN " + str(tuple(results['Country']))
+    from_part = " FROM (SELECT * FROM ((SELECT t.name2, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name2, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u inner join Form f on u.fname = f.Name) t GROUP BY t.name2) E inner join (SELECT M.Country, AVG(M.Emissions) as emissions FROM Emissions M WHERE M.Year >= " + str(current_year-10) + " GROUP BY M.Country) K on E.name2 = K.country) inner join Country C on E.name2 = C.Name) A WHERE A.Name IN " + str(tuple([str(c) for c in results['Country']]))
     query += from_part
     print(query)
     res = None
@@ -238,7 +238,7 @@ def aggregate():
     if res is not None:
         for r in res:
             countries.append(r['Name'])
-    stats['Number of Countries'] = {'max': len(countries), 'min': len(countries), 'avg': len(countries)}
+    stats['Number of Countries'] = {'max': len(results['Country']), 'min': len(results['Country']), 'avg': len(results['Country'])}
     return render_template("aggregate_filter.html", agg=stats, countries=results, metric=metric)
 
 @main.route('/map')
