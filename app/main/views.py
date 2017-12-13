@@ -107,20 +107,22 @@ def country(country=None):
     RETURN neighbor.name, exports.value/(SUM(neighborimports.value)+exports.value) AS weight
     ORDER BY weight DESC
     """
+    neighbor_emissions = {}
+    with connection.cursor() as cursor:
+        sql_q = "SELECT Country, Emissions FROM Emissions WHERE Year=2015"
+        cursor.execute(sql_q)
+        res = cursor.fetchall()
+        for c in res:
+            neighbor_emissions[c['Country']] = c['Emissions']
     with neo4j_driver.session() as session:
         with session.begin_transaction() as tx:
             fuel_exports = []
             for record in tx.run(query):
-                neighbor_emission = None
-                with connection.cursor() as cursor:
-                    sql_q = "SELECT Emissions FROM Emissions WHERE Year=2015 AND Country=\"" + record['neighbor.name'] + "\""
-                    try:
-                        cursor.execute(sql_q)
-                        res = cursor.fetchall()
-                        neighbor_emission = res[0]['Emissions']
-                    except:
-                        print('No Emissions for ' + record['neighbor.name'])
-                fuel_exports.append((record["neighbor.name"], round(record["weight"]*100,2), neighbor_emission))
+                try:
+                    neighbor_emission = neighbor_emissions[record['neighbor.name']]
+                    fuel_exports.append((record["neighbor.name"], round(record["weight"]*100,2), neighbor_emission))
+                except:
+                    print('No Emissions for ' + record['neighbor.name'])
     impact = None
     if fuel_exports is not None:
         impact = 0
