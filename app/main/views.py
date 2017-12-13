@@ -35,6 +35,7 @@ def country(country=None):
     if country is None:
         return country_search()
     connection = sql_connection
+    driver = neo4j_driver
     res = None
     country_info = {'Name': country}
     with connection.cursor() as cursor:
@@ -101,7 +102,7 @@ def country(country=None):
     try:
         img = fs.get(db['flags'].find_one({"country": country})['id']).read()
         fileprefix = 'app'+url_for("static", filename="images/")
-        res = os.system("rm -rf " + fileprefix + "*")
+        res = os.system("rm -rf " + fileprefix + "*.png")
         filename = country
         f = open(fileprefix+country+".png", "wb")
         f.write(img)
@@ -111,7 +112,6 @@ def country(country=None):
         pass
     merged = None
     impact = None
-    driver = neo4j_driver
     query = """
     MATCH (input:CountryFuel {name:'""" + country + """'})-[exports:FuelExports]->(neighbor:CountryFuel)<-[neighborimports:FuelExports]-(:CountryFuel)
     RETURN neighbor.name, exports.value/(SUM(neighborimports.value)+exports.value) AS weight
@@ -121,8 +121,32 @@ def country(country=None):
         sql_q = "SELECT Country, Emissions FROM Emissions WHERE Year=2015"
         cursor.execute(sql_q)
         neighbor_emissions = pandas.DataFrame(cursor.fetchall())
+    totalexports = """
+    match (c:Country)-[r:`Exports-TO`]->(d:Country)
+    where c.name = \"""" + country + """\"
+    return sum(r.value) as TotalExports
+    """
+    totalimports = """
+    match (c:Country)-[r:`Imports-TO`]->(d:Country)
+    where c.name = \"""" + country + """\"
+    return sum(r.value) as TotalImports
+    """
+    totalfuelexports = """
+    match (c:CountryFuel)-[r:FuelExports]->(d:CountryFuel)
+    where c.name = \"""" + country + """\"
+    return sum(r.value) as TotalFuelExports
+    """
+    totalfuelimports = """
+    match (c:CountryFuel)-[r:FuelImports]->(d:CountryFuel)
+    where c.name = \"""" + country + """\"
+    return sum(r.value) as TotalFuelImports
+    """
     with driver.session() as session:
         with session.begin_transaction() as tx:
+            country_info['TotalExports'] = [x['TotalExports'] for x in tx.run(totalexports)][0]
+            country_info['TotalImports'] = [x['TotalImports'] for x in tx.run(totalimports)][0]
+            country_info['TotalFuelExports'] = [x['TotalFuelExports'] for x in tx.run(totalfuelexports)][0]
+            country_info['TotalFuelImports'] = [x['TotalFuelImports'] for x in tx.run(totalfuelimports)][0]
             fuel_exports = pandas.DataFrame([(r['neighbor.name'], round(r['weight']*100,2)) for r in tx.run(query)])
             fuel_exports.columns = ['Country', 'Weight']
     merged = fuel_exports.merge(neighbor_emissions, on='Country')
@@ -133,6 +157,7 @@ def country(country=None):
 @main.route('/aggregate')
 def aggregate():
     global sql_connection
+    global neo4j_driver
     metric = request.args.get('metric')
     max_val = request.args.get('max')
     if len(max_val) == 0:
@@ -140,6 +165,49 @@ def aggregate():
     min_val = request.args.get('min')
     if len(min_val) == 0:
         min_val = 0
+
+    connection = sql_connection
+    driver = neo4j_driver
+
+    try:
+        sql_bounds_query = metric + ' >= ' + str(min_val) + ' AND ' + metric + ' <= ' + str(max_val) + ' ORDER BY ' + metric + ' DESC'
+        if metric in ['HDI', 'LandArea', 'Population', 'GDP', 'Gini', 'Emissions']:
+            if metric in ['HDI', 'LandArea', 'Population', 'GDP', 'Gini']:
+                query = 'SELECT Name AS Country, ' + metric + ' FROM Country WHERE ' + sql_bounds_query
+            elif metric in ['Emissions']:
+                query = 'SELECT Country, ' + metric + ' FROM Emissions WHERE Year=2015 AND ' + sql_bounds_query
+            with connection.cursor() as cursor:
+                cursor.execute(query)
+                results = pandas.DataFrame(cursor.fetchall())
+
+        elif metric in ['ExportImpact']:
+            if metric in ['ExportImpact']:
+                query = """
+                MATCH (input:CountryFuel)-[exports:FuelExports]->(neighbor:CountryFuel)<-[neighborimports:FuelExports]-(:CountryFuel)
+                RETURN input.name, neighbor.name, exports.value/(SUM(neighborimports.value)+exports.value) AS weight
+                ORDER BY input.name, weight DESC
+                """
+            with driver.session() as session:
+                with session.begin_transaction() as tx:
+                    results = pandas.DataFrame([(x['input.name'], x['neighbor.name'], x['weight']) for x in tx.run(query)])
+                    results.columns = ['Exporter', 'Importer', 'Weight']
+            with connection.cursor() as cursor:
+                sql_q = "SELECT Country, Emissions FROM Emissions WHERE Year=2015"
+                cursor.execute(sql_q)
+                res = cursor.fetchall()
+                df2 = pandas.DataFrame(res)
+            merged = results.merge(df2, left_on='Importer', right_on='Country')
+            merged = merged[merged['Importer'] != 'World']
+            merged['Impact'] = merged['Weight'] * merged['Emissions']
+            results = merged.groupby('Exporter')['Impact'].sum()
+            results = pandas.DataFrame(results[(results >= int(min_val)) & (results <= int(max_val))].sort_values(ascending=False)).reset_index()
+            results.columns = ['Country', metric]
+    except:
+        return render_template("aggregate_filter.html", agg=None, countries=None, metric=metric)
+
+    if len(results) <= 1:
+        return render_template("aggregate_filter.html", agg=None, countries=None, metric=metric)
+
     metrics = ['HDI', 'LandArea', 'Population', 'GDP', 'Gini', 'overall_efficiency', 'Emissions']
     current_year = 2017
     query = "SELECT "
@@ -149,11 +217,10 @@ def aggregate():
             query += ", "
         query += "AVG(" + m + ") as "+m+"_AVG, MIN("+m+") as "+m+"_MIN, MAX("+m+") as "+m+"_MAX"
         count += 1
-    from_part = " FROM (SELECT * FROM ((SELECT t.name2, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name2, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u inner join Form f on u.fname = f.Name) t GROUP BY t.name2) E inner join (SELECT M.Country, AVG(M.Emissions) as emissions FROM Emissions M WHERE M.Year >= " + str(current_year-10) + " GROUP BY M.Country) K on E.name2 = K.country) inner join Country C on E.name2 = C.Name) A WHERE "+m+" >= " + str(min_val) + " AND " + m + " <= " + str(max_val)
+    from_part = " FROM (SELECT * FROM ((SELECT t.name2, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name2, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u inner join Form f on u.fname = f.Name) t GROUP BY t.name2) E inner join (SELECT M.Country, AVG(M.Emissions) as emissions FROM Emissions M WHERE M.Year >= " + str(current_year-10) + " GROUP BY M.Country) K on E.name2 = K.country) inner join Country C on E.name2 = C.Name) A WHERE A.Name IN " + str(tuple(results['Country']))
     query += from_part
     print(query)
     res = None
-    connection = sql_connection
     with connection.cursor() as cursor:
         cursor.execute(query)
         res = cursor.fetchall()
@@ -172,7 +239,7 @@ def aggregate():
         for r in res:
             countries.append(r['Name'])
     stats['Number of Countries'] = {'max': len(countries), 'min': len(countries), 'avg': len(countries)}
-    return render_template("aggregate_filter.html", agg=stats, countries=countries)
+    return render_template("aggregate_filter.html", agg=stats, countries=results, metric=metric)
 
 @main.route('/map')
 def index():
