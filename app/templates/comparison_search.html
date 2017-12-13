@@ -37,5 +37,24 @@
 {% if country1 is not none and country2 is not none%}
   <h1>{{ country1 }} vs. {{country2}}</h1>
 
+  <div id="emissionsDiv"></div>
+  <script>
+    var trace1 = {
+        x: {{ time_series[0]["Year"] }},
+        y: {{ time_series[0]["Emissions"] }},
+        mode: 'lines',
+        name: '{{country1 }}'
+    };
+    var trace2 = {
+        x: {{ time_series[1]["Year"] }},
+        y: {{ time_series[1]["Emissions"] }},
+        mode: 'lines',
+        name: '{{country2 }}',
+    };
+    var data = [trace1, trace2];
+    var layout = {title: '{{ country1 }}' + ' vs ' + '{{country2}}' + ': CO2 Emissions Over Time', xaxis: { title: 'Year' }, yaxis: { title: 'CO2 Emissions (kilotons)' }};
+    Plotly.newPlot("emissionsDiv", data, layout);
+  </script>
+
 {% endif %}
 {% endblock %}
