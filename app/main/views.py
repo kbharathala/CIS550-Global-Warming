@@ -210,4 +210,27 @@ def compare(country1=None, country2=None):
                 time_info2['Year'].append(int(res[i]['Year']))
                 time_info2['Emissions'].append(float(res[i]['Emissions']))
     time_info = [time_info1, time_info2]
-    return render_template("comparison_search.html", country1=country1, country2=country2, time_series=time_info)
+    uses1, uses2 = {}, {}
+    with connection.cursor() as cursor:
+        sql = 'Select U.fname, U.percent_usage from Uses U where U.cname = \"' + country1 + '\";'
+        cursor.execute(sql)
+        res = cursor.fetchall()
+        if res is not None:
+            for r in res:
+                uses1[str(r['fname'])] = float(r['percent_usage'])
+    with connection.cursor() as cursor:
+        sql = 'Select U.fname, U.percent_usage from Uses U where U.cname = \"' + country2 + '\";'
+        cursor.execute(sql)
+        res = cursor.fetchall()
+        if res is not None:
+            for r in res:
+                uses2[str(r['fname'])] = float(r['percent_usage'])
+    uses = [uses1, uses2]
+
+    print(uses[0].values())
+    print(uses[0].keys())
+
+
+
+
+    return render_template("comparison_search.html", country1=country1, country2=country2, time_series=time_info, uses=uses)
