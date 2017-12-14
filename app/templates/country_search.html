@@ -83,10 +83,12 @@
         <td>Years with higher temperature in {{ temp_info['RecentMonth'] }}: {{ ','.join(temp_info['HigherYears']) }}</td>
       </tr>
     {% endif %}
+      {% if impact is not none %}
       <tr>
         <th scope="row">Total Impact from Fuel Exports (kilotons of CO2) </th>
         <td> {{ impact }} </td>
       </tr>
+      {% endif %}
     </tbody>
     <div id="emissionsDiv"></div>
     <script>
