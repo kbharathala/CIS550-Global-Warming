@@ -1,6 +1,16 @@
 {% extends "layout.html" %}
 {% block body %}
-
+    <div id="fb-root"></div>
+    <script>
+      window.fbAsyncInit = function() {
+          FB.init({appId: '154759205151618', status: true, cookie: true, xfbml: true});
+      };
+      (function() {
+          var e = document.createElement('script'); e.async = true;
+          e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+          document.getElementById('fb-root').appendChild(e);
+      }());
+    </script>
     <nav class="navbar navbar-default navbar-static-top">
     <div class="container">
     <div class="navbar-header">
