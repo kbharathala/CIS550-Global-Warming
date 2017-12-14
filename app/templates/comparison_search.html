@@ -1,5 +1,16 @@
 {% extends "layout.html" %}
 {% block body %}
+    <div id="fb-root"></div>
+    <script>
+      window.fbAsyncInit = function() {
+          FB.init({appId: '154759205151618', status: true, cookie: true, xfbml: true});
+      };
+      (function() {
+          var e = document.createElement('script'); e.async = true;
+          e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+          document.getElementById('fb-root').appendChild(e);
+      }());
+    </script>
     <nav class="navbar navbar-default navbar-static-top">
     <div class="container">
     <div class="navbar-header">
@@ -36,6 +47,23 @@
 
 {% if country1 is not none and country2 is not none%}
   <h1>{{ country1 }} vs. {{country2}}</h1>
+  <script type="text/javascript">
+    document.write('<div class=\"fb-share-button\" id=\"share_button\" data-href=\"' + window.location.href + '\" data-type=\"button_count\" data-width=\"200\"></div>');
+    $(document).ready(function() {
+        $('#share_button').click(function(e) {
+            e.preventDefault();
+            FB.ui(
+                {
+                    method: 'feed',
+                    name: 'Climalyze',
+                    link: window.location.href,
+                    caption: 'Climate-centric comparison between {{ country1 }} and {{ country 2 }}',
+                    description: 'Learn more about the climate on Climalyze',
+                    message: ""
+                });
+        });
+    });
+  </script>
 
   <div id="emissionsDiv"></div>
   <script>
