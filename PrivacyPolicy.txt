@@ -1,0 +1,1 @@
+We do not keep track of user information. There are no login accounts, and we do not explicitly keep track of user history.

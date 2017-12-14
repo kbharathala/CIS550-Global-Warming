@@ -1,5 +1,16 @@
 {% extends "layout.html" %}
 {% block body %}
+    <div id="fb-root"></div>
+    <script>
+      window.fbAsyncInit = function() {
+          FB.init({appId: '154759205151618', status: true, cookie: true, xfbml: true});
+      };
+      (function() {
+          var e = document.createElement('script'); e.async = true;
+          e.src = document.location.protocol + '//connect.facebook.net/en_US/all.js';
+          document.getElementById('fb-root').appendChild(e);
+      }());
+    </script>
     <nav class="navbar navbar-default navbar-static-top">
     <div class="container">
     <div class="navbar-header">
@@ -37,6 +48,24 @@
   {% if img is not none %}
     <img src={{ url_for("static", filename="images/"+ img + ".png") }} width="120" height="90" />
   {% endif %}
+  <div id="share_button" class="fb-share-button" data-href='https://developers.facebook.com/docs/plugins/' data-width='200' data-type='button_count'></div>
+  <!-- Using code from: https://stackoverflow.com/questions/16463030/how-to-add-facebook-share-button-on-my-website -->
+  <script type="text/javascript">
+    $(document).ready(function() {
+        $('#share_button').click(function(e) {
+            e.preventDefault();
+            FB.ui(
+                {
+                    method: 'feed',
+                    name: 'Climalyze',
+                    link: window.location.href,
+                    caption: 'Climate-related info about ' + {{ country['Name'] }},
+                    description: 'Learn more about the climate on Climalyze',
+                    message: ""
+                });
+        });
+    });
+  </script>
   <h2>Details</h2>
   <table class="table">
   <tbody>
