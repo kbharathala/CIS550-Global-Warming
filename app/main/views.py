@@ -149,10 +149,16 @@ def country(country=None):
             country_info['TotalFuelExports (Millions of USD)'] = [x['TotalFuelExports'] for x in tx.run(totalfuelexports)][0]
             country_info['TotalFuelImports (Millions of USD)'] = [x['TotalFuelImports'] for x in tx.run(totalfuelimports)][0]
             fuel_exports = pandas.DataFrame([(r['neighbor.name'], round(r['weight']*100,2)) for r in tx.run(query)])
-            fuel_exports.columns = ['Country', 'Weight']
-    merged = fuel_exports.merge(neighbor_emissions, on='Country')
-    tmp = merged[merged['Country'] != 'World']
-    impact = (tmp['Weight'] * tmp['Emissions'] / 100).sum()
+            if len(fuel_exports) > 0:
+                fuel_exports.columns = ['Country', 'Weight']
+                merged = fuel_exports.merge(neighbor_emissions, on='Country')
+                tmp = merged[merged['Country'] != 'World']
+                impact = (tmp['Weight'] * tmp['Emissions'] / 100).sum()
+            else:
+                fuel_exports = None
+                merged = None
+                tmp = None
+                impact = None
     return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info, fuel_exports=merged, impact=impact, uses=uses)
 
 @main.route('/aggregate')
