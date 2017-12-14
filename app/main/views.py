@@ -38,6 +38,7 @@ def country(country=None):
     driver = neo4j_driver
     res = None
     country_info = {'Name': country}
+    uses = {}
     with connection.cursor() as cursor:
         sql = 'Select * from Country where Country.Name = \"' + country + '\";'
         cursor.execute(sql)
@@ -54,7 +55,7 @@ def country(country=None):
         res = cursor.fetchall()
         if res is not None:
             for r in res:
-                country_info[r['fname']] = float(r['percent_usage'])
+                uses[r['fname']] = float(r['percent_usage'])
         sql = 'SELECT t.name, SUM(t.efficiency) AS overall_efficiency FROM (SELECT u.cname AS name, u.fname, u.percent_usage * f.Efficiency AS efficiency FROM Uses u, Form f WHERE u.fname = f.Name) t WHERE t.name = \"' + country + '\"'
         cursor.execute(sql)
         res = cursor.fetchall()
@@ -152,7 +153,7 @@ def country(country=None):
     merged = fuel_exports.merge(neighbor_emissions, on='Country')
     tmp = merged[merged['Country'] != 'World']
     impact = (tmp['Weight'] * tmp['Emissions'] / 100).sum()
-    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info, fuel_exports=merged, impact=impact)
+    return render_template("country_search.html", country=country_info, img=filename, time_series=time_info, temp_info=temp_info, fuel_exports=merged, impact=impact, uses=uses)
 
 @main.route('/aggregate')
 def aggregate():

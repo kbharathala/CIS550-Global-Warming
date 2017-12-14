@@ -112,6 +112,22 @@
       {% endif %}
     Plotly.newPlot("emissionsDiv", data, layout);
     </script>
+    <div id="usesDiv"></div>
+    <script>
+      var data = [{
+          values: {{ uses.values() | list}},
+          labels: {{ uses.keys()|list|tojson|safe }},
+          domain: {
+              x: [.2, .5]
+          },
+          type: 'pie',
+          name: '{{country['Name']}}'
+      }];
+      var layout = {
+          title: '{{ country['Name']}}' + ': Resource Utilization', 
+          };
+      Plotly.newPlot("usesDiv", data, layout);
+    </script>
     <div id="fuelExportsDiv">
       {% if fuel_exports is not none %}
       <table class="table">
