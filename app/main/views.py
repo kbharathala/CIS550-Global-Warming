@@ -18,6 +18,10 @@ neo4j_driver = GraphDatabase.driver('bolt://ec2-34-201-111-94.compute-1.amazonaw
 def index2():
     return render_template("main.html")
 
+@main.route("/feed")
+def feed():
+    return render_template("twitter.html")
+
 @main.route("/country/")
 @main.route("/country_search")
 def country_search():

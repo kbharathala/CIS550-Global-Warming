@@ -19,6 +19,9 @@
                 <li>
                     <a class="nav-link" href="{{ url_for('main.comparison_search') }}">Comparisons</a>
                 </li>
+                <li>
+                    <a class="nav-link" href="{{ url_for('main.feed') }}">Twitter Feed</a>
+                </li>
             </ul>
         </div>
     </div>
@@ -30,9 +33,9 @@
          <input type=submit value=Upload>
     </form>-->
     <h1 = align="center">Welcome!</h1>
-    Climalyze allows you to analyze the relationship between economic factors and a country's contribution to climate change. You can search for a spceific country or filter all countries by an economic or climate-related statistic. We hope that this software can help people understand interactions between climate and economic data better.
+    Climalyze allows you to analyze the relationship between economic factors and a country's contribution to climate change. You can search for a spceific country, filter all countries by an economic or climate-related statistic, or compare two countries. You can also view a Twitter feed of content about climate change and share information that you see on the website through Facebook. We hope that this software can help people understand climate change and associated factors better, as it is one of the most significant problems facing our world!
 
-    <center><img src="https://i.ytimg.com/vi/ICQGPrBI1r0/maxresdefault.jpg"></center>
+    <center><img style="max-width: 100%; max-height: 100%;" src="https://i.ytimg.com/vi/ICQGPrBI1r0/maxresdefault.jpg"></center>
     
     <script>
       window.fbAsyncInit = function() {
@@ -54,6 +57,16 @@
          js.src = "https://connect.facebook.net/en_US/sdk.js";
          fjs.parentNode.insertBefore(js, fjs);
        }(document, 'script', 'facebook-jssdk'));
+
+      // Code from https://stackoverflow.com/questions/6169666/how-to-resize-an-image-to-fit-in-the-browser-window
+      function set_body_height() {
+          $('body').height($(window).height());
+          $('body').width($(window).width());
+      }
+      $(document).ready(function() {
+          $(window).bind('resize', set_body_height);
+          set_body_height();
+      });
     </script>
 
 {% endblock %}
