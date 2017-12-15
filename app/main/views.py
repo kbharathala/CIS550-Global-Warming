@@ -138,8 +138,8 @@ def country(country=None):
     return sum(r.value) as TotalFuelExports
     """
     totalfuelimports = """
-    match (c:CountryFuel)-[r:FuelImports]->(d:CountryFuel)
-    where c.name = \"""" + country + """\"
+    match (c:CountryFuel)-[r:FuelExports]->(d:CountryFuel)
+    where d.name = \"""" + country + """\"
     return sum(r.value) as TotalFuelImports
     """
     with driver.session() as session:
