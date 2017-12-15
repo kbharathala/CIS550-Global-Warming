@@ -129,7 +129,7 @@ def country(country=None):
     """
     totalimports = """
     match (c:Country)-[r:`Imports-TO`]->(d:Country)
-    where c.name = \"""" + country + """\"
+    where d.name = \"""" + country + """\"
     return sum(r.value) as TotalImports
     """
     totalfuelexports = """
